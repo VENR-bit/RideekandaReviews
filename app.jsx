@@ -203,7 +203,7 @@ function QRPanel({ url }) {
           }}>
             Scan the code with your phone, or tap the link below. Your words help others find their way to the practice.
           </p>
-          <a
+          {mobile && <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
@@ -229,7 +229,7 @@ function QRPanel({ url }) {
             <GoogleG size={16} />
             <span>Open on Google</span>
             <span style={{ opacity: 0.75 }}>→</span>
-          </a>
+          </a>}
         </div>
       </div>
     </aside>
