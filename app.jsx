@@ -11,14 +11,16 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 
 /* ---------- Header ---------- */
 
-function StatsBlock({ stats }) {
+function StatsBlock({ stats, mobile }) {
   return (
     <div
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 18,
-        padding: "10px 22px",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        gap: mobile ? 10 : 18,
+        padding: mobile ? "8px 16px" : "10px 22px",
         background: "rgba(253, 251, 246, 0.6)",
         border: "1px solid var(--line)",
         borderRadius: 999,
@@ -42,13 +44,13 @@ function StatsBlock({ stats }) {
   );
 }
 
-function PageHeader({ stats, style }) {
+function PageHeader({ stats, style, mobile }) {
   const isCentered = style === "centered";
   return (
     <header
       style={{
         textAlign: isCentered ? "center" : "left",
-        padding: isCentered ? "72px 24px 36px" : "72px 24px 36px",
+        padding: mobile ? "48px 16px 28px" : "72px 24px 36px",
         maxWidth: 1280,
         margin: "0 auto",
       }}
@@ -103,7 +105,7 @@ function PageHeader({ stats, style }) {
         Reflections from those who came, sat in silence, and walked the path with us.
       </p>
 
-      <StatsBlock stats={stats} />
+      <StatsBlock stats={stats} mobile={mobile} />
     </header>
   );
 }
@@ -111,7 +113,7 @@ function PageHeader({ stats, style }) {
 /* ---------- QR Panel ---------- */
 
 function QRPanel({ url }) {
-  // Use qrserver — clean SVG, no script needed.
+  const mobile = useIsMobile();
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=0&format=svg&data=${encodeURIComponent(url)}&color=1f1a14&bgcolor=fdfbf6`;
   return (
     <aside
@@ -126,11 +128,12 @@ function QRPanel({ url }) {
           background: "var(--card)",
           border: "1px solid var(--line)",
           borderRadius: 22,
-          padding: "40px 44px",
+          padding: mobile ? "28px 20px" : "40px 44px",
           display: "grid",
-          gridTemplateColumns: "auto 1fr",
-          gap: 40,
+          gridTemplateColumns: mobile ? "1fr" : "auto 1fr",
+          gap: mobile ? 24 : 40,
           alignItems: "center",
+          justifyItems: mobile ? "center" : undefined,
           boxShadow: "var(--shadow-md)",
           position: "relative",
           overflow: "hidden",
@@ -149,9 +152,9 @@ function QRPanel({ url }) {
         {/* QR */}
         <div
           style={{
-            width: 184,
-            height: 184,
-            padding: 14,
+            width: mobile ? 140 : 184,
+            height: mobile ? 140 : 184,
+            padding: mobile ? 10 : 14,
             background: "var(--card)",
             border: "1px solid var(--line)",
             borderRadius: 14,
@@ -163,14 +166,14 @@ function QRPanel({ url }) {
           <img
             src={qrSrc}
             alt="Scan to leave a review on Google"
-            width={156}
-            height={156}
+            width={mobile ? 120 : 156}
+            height={mobile ? 120 : 156}
             style={{ display: "block" }}
           />
         </div>
 
         {/* Text */}
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", textAlign: mobile ? "center" : undefined }}>
           <div style={{
             fontSize: 11.5,
             letterSpacing: 2.5,
@@ -286,6 +289,7 @@ function Footer() {
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [page, setPage] = useStateApp(1);
+  const mobile = useIsMobile();
   const perPage = t.layout === "editorial" ? 6 : 8;
 
   // Apply palette to CSS variables
@@ -309,9 +313,9 @@ function App() {
 
   return (
     <>
-      <PageHeader stats={STATS} style={t.headerStyle} />
+      <PageHeader stats={STATS} style={t.headerStyle} mobile={mobile} />
 
-      <main style={{ padding: "0 24px 24px" }}>
+      <main style={{ padding: mobile ? "0 12px 16px" : "0 24px 24px" }}>
         <Layout reviews={visible} />
         <LoadMore hasMore={hasMore} onClick={() => setPage((p) => p + 1)} />
       </main>

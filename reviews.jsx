@@ -1,5 +1,17 @@
 // Reusable presentational pieces for the Reviews page.
-const { useState, useMemo, useRef, useLayoutEffect } = React;
+const { useState, useMemo, useRef, useLayoutEffect, useEffect: useEffectR, useCallback } = React;
+
+function useIsMobile(breakpoint = 600) {
+  const [mobile, setMobile] = useState(() => window.innerWidth < breakpoint);
+  useEffectR(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const handler = (e) => setMobile(e.matches);
+    mq.addEventListener("change", handler);
+    setMobile(mq.matches);
+    return () => mq.removeEventListener("change", handler);
+  }, [breakpoint]);
+  return mobile;
+}
 
 /* ---------- Iconography ---------- */
 
@@ -177,17 +189,17 @@ function GridLayout({ reviews }) {
 
 /* ---------- Layout 2: Editorial (2-col, serif, large pull quotes) ---------- */
 
-function EditorialCard({ r, flip }) {
+function EditorialCard({ r, flip, mobile }) {
   return (
     <article
       style={{
         background: "var(--card)",
         border: "1px solid var(--line)",
         borderRadius: 18,
-        padding: "32px 36px",
+        padding: mobile ? "24px 20px" : "32px 36px",
         display: "grid",
-        gridTemplateColumns: flip ? "1fr auto" : "auto 1fr",
-        gap: 28,
+        gridTemplateColumns: mobile ? "1fr" : (flip ? "1fr auto" : "auto 1fr"),
+        gap: mobile ? 18 : 28,
         alignItems: "start",
         boxShadow: "var(--shadow-sm)",
         position: "relative",
@@ -213,15 +225,18 @@ function EditorialCard({ r, flip }) {
         “
       </div>
 
-      {!flip && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, width: 88 }}>
-          <Avatar name={r.name} initial={r.initial} color={r.color} size={64} />
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontFamily: "var(--serif)", fontSize: 17, fontWeight: 500, color: "var(--ink)", lineHeight: 1.15 }}>{r.name}</div>
-            <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 4, letterSpacing: 0.3, textTransform: "uppercase" }}>{r.when}</div>
+      {(mobile || !flip) && (
+        <div style={mobile
+          ? { display: "flex", alignItems: "center", gap: 12 }
+          : { display: "flex", flexDirection: "column", alignItems: "center", gap: 10, width: 88 }
+        }>
+          <Avatar name={r.name} initial={r.initial} color={r.color} size={mobile ? 44 : 64} />
+          <div style={{ textAlign: mobile ? "left" : "center", flex: mobile ? 1 : undefined }}>
+            <div style={{ fontFamily: "var(--serif)", fontSize: mobile ? 15 : 17, fontWeight: 500, color: "var(--ink)", lineHeight: 1.15 }}>{r.name}</div>
+            <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: mobile ? 2 : 4, letterSpacing: 0.3, textTransform: "uppercase" }}>{r.when}</div>
           </div>
-          <div style={{ marginTop: 4 }}><StarRow rating={r.rating} size={12} /></div>
-          <div style={{ marginTop: 6 }}><GoogleG size={16} /></div>
+          {!mobile && <div style={{ marginTop: 4 }}><StarRow rating={r.rating} size={12} /></div>}
+          {!mobile && <div style={{ marginTop: 6 }}><GoogleG size={16} /></div>}
         </div>
       )}
 
@@ -229,7 +244,14 @@ function EditorialCard({ r, flip }) {
         <ReviewText text={r.text} clampLines={5} variant="editorial" />
       </div>
 
-      {flip && (
+      {mobile && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <StarRow rating={r.rating} size={13} />
+          <GoogleG size={16} />
+        </div>
+      )}
+
+      {!mobile && flip && (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, width: 88 }}>
           <Avatar name={r.name} initial={r.initial} color={r.color} size={64} />
           <div style={{ textAlign: "center" }}>
@@ -245,17 +267,18 @@ function EditorialCard({ r, flip }) {
 }
 
 function EditorialLayout({ reviews }) {
+  const mobile = useIsMobile();
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(440px, 1fr))",
-        gap: 24,
+        gridTemplateColumns: mobile ? "1fr" : "repeat(auto-fill, minmax(440px, 1fr))",
+        gap: mobile ? 16 : 24,
         maxWidth: 1240,
         margin: "0 auto",
       }}
     >
-      {reviews.map((r, i) => <EditorialCard key={i} r={r} flip={i % 2 === 1} />)}
+      {reviews.map((r, i) => <EditorialCard key={i} r={r} flip={i % 2 === 1} mobile={mobile} />)}
     </div>
   );
 }
@@ -322,4 +345,5 @@ function StreamLayout({ reviews }) {
 Object.assign(window, {
   Lotus, StarRow, GoogleG, Avatar,
   GridLayout, EditorialLayout, StreamLayout,
+  useIsMobile,
 });
